@@ -73,11 +73,18 @@ namespace MesssagePackSerializationWithRedis
         {
             public StackExchangeRedisExtensionsMessagePackSerializer()
             {
+                ///Does not work as the times get converted to UTC
                 //MessagePackSerializer.SetDefaultResolver(MessagePack.Resolvers.ContractlessStandardResolverAllowPrivate.Instance);
-                CompositeResolver.RegisterAndSetAsDefault(
-                    new[] { new DurableDateTimeFormatter() },
-                    new[] { MessagePack.Resolvers.ContractlessStandardResolverAllowPrivate.Instance });
+
+                //Works!!!
+                //CompositeResolver.RegisterAndSetAsDefault(
+                //    new[] { new DurableDateTimeFormatter() },
+                //    new[] { MessagePack.Resolvers.ContractlessStandardResolverAllowPrivate.Instance });
+
+                ///Works!!
+                CompositeResolver.RegisterAndSetAsDefault(new[] { NativeDateTimeResolver.Instance, ContractlessStandardResolverAllowPrivate.Instance });
             }
+
             public object Deserialize(byte[] serializedObject)
             {
                 if (serializedObject == null)
@@ -85,7 +92,7 @@ namespace MesssagePackSerializationWithRedis
                     return default;
                 }
 
-                return MessagePackSerializer.Deserialize<object>(serializedObject);
+                return LZ4MessagePackSerializer.Deserialize<object>(serializedObject);
             }
 
             public T Deserialize<T>(byte[] serializedObject)
@@ -95,7 +102,7 @@ namespace MesssagePackSerializationWithRedis
                     return default;
                 }
 
-                return MessagePackSerializer.Deserialize<T>(serializedObject);
+                return LZ4MessagePackSerializer.Deserialize<T>(serializedObject);
             }
 
             public async Task<object> DeserializeAsync(byte[] serializedObject)
@@ -115,7 +122,7 @@ namespace MesssagePackSerializationWithRedis
                     return null;
                 }
 
-                return MessagePackSerializer.Serialize(item);
+                return LZ4MessagePackSerializer.Serialize(item);
             }
 
             public async Task<byte[]> SerializeAsync(object item)
